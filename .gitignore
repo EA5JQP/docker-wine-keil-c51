@@ -1,0 +1,6 @@
+*.exe
+*.log
+*.tmp
+DemoCode/
+session-*.md
+.antigravitycli/
