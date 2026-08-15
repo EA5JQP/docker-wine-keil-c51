@@ -72,12 +72,23 @@ def main():
     sources = parse_uvproj(os.path.join(project_dir, uvproj))
     proj = f"{WORK}/{project_name}"
 
-    # Assemble .A51 files
+    # Assemble .A51 files via invoke file
     for s in sources:
         if s["name"].upper().endswith(".A51"):
             p = win2ux(s["path"])
+            base = os.path.splitext(os.path.basename(p))[0]
+            obj_path = f"Objects/{base}.OBJ"
+            lst_path = f"Listings/{base}.lst"
             print(f"Assembling {p}...")
-            run_cmd(f"cd {proj} && wine {C51_BIN}/A51.EXE {p}")
+            inv_lines = [
+                p,
+                f"OBJ({obj_path})",
+                f"LIST({lst_path})",
+                "NOMOD51",
+            ]
+            write_inv(proj, inv_lines)
+            rc = run_cmd(f"cd {proj} && wine {C51_BIN}/A51.EXE @_build.inv")
+            run_quiet(f"rm -f {proj}/_build.inv")
 
     # Compile C sources via invoke files
     for s in sources:
@@ -103,10 +114,17 @@ def main():
         if s["name"].upper().endswith(".OBJ"):
             obj_files.append(win2ux(s["path"]))
         elif s["type"] == 1:
-            obj_files.append(win2ux(s["path"]).rsplit(".", 1)[0] + ".OBJ")
+            base = os.path.splitext(os.path.basename(win2ux(s["path"])))[0]
+            obj_files.append(f"Objects/{base}.OBJ")
+        elif s["name"].upper().endswith(".A51"):
+            base = os.path.splitext(os.path.basename(win2ux(s["path"])))[0]
+            obj_files.append(f"Objects/{base}.OBJ")
 
-    obj_str = " ".join(obj_files)
-    run_cmd(f"cd {proj} && wine {C51_BIN}/BL51.EXE {obj_str} TO {project_name} MAP")
+    # Write linker invoke file
+    inv_lines = [",".join(obj_files), f"TO Objects/{project_name}", f"PRINT(Listings/{project_name}.m51)", "RAMSIZE(256)"]
+    write_inv(proj, inv_lines)
+    run_cmd(f"cd {proj} && wine {C51_BIN}/LX51.EXE @_build.inv")
+    run_quiet(f"rm -f {proj}/_build.inv")
 
     # Generate HEX
     print("Generating HEX...")
