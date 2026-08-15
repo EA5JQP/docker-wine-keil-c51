@@ -118,5 +118,5 @@ The C51 command line is being parsed incorrectly. Use `UV4.exe -b` (batch mode) 
 ## Notes
 
 - **Wine 8.4** is required (Wine 11 has `CreateProcess` path resolution bugs that break UV4 subprocess spawning)
-- **eval version** — C51 runs as evaluation; purchase a license for production use
+- **License required** — C51 runs in evaluation mode without a valid license, which limits the generated binary size (2 KB for the code segment). Register a valid Keil C51 license to remove this limitation for production use.
 - X11 socket must be chmod 777 before running Wine GUI apps as the container user

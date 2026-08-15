@@ -1,4 +1,5 @@
 *.exe
+!c51v960a.exe
 *.log
 *.tmp
 DemoCode/
